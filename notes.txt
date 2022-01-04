@@ -1,5 +1,6 @@
 https://blog.alexdevero.com/react-express-sqlite-app/
-https://www.git-tower.com/learn/git/faq/create-branch
+https://blog.jscrambler.com/build-a-graphql-api-with-node
+https://blog.jscrambler.com/building-a-crud-app-with-vue-and-graphql/
 
 # Getting Started with Create React App
 
