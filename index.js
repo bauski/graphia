@@ -1,6 +1,7 @@
 const express = require('express')
 const sqlite = require('sqlite3').verbose()
 const graphql = require('graphql')
+const cors = require('cors')
 const expressGraphql = require('express-graphql').graphqlHTTP
 
 const app = express()
@@ -157,7 +158,7 @@ const schema = new graphql.GraphQLSchema({
     query: queryType,
     mutation: mutationType
 })
-
+app.use(cors)
 app.use("/graphql", expressGraphql({ schema: schema, graphiql: true}));
 app.listen(4000, () => {
     console.log("GraphQL server running at http://localhost:4000.");
