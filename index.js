@@ -22,7 +22,7 @@ createUserTable()
 const userType = new graphql.GraphQLObjectType({
     name: 'user',
     fields: {
-        id: {type: graphql.GraphQLObjectID},
+        id: {type: graphql.GraphQLID},
         name: {type: graphql.GraphQLString},
         email: {type: graphql.GraphQLString},
         password: {type: graphql.GraphQLString}
@@ -54,7 +54,7 @@ let queryType = new graphql.GraphQLObjectType({
             },
             resolve: (root, {id}, context, info) => {
                 return new Promise((resolve, reject) => {
-                    db.all(`SELECT * FROM users WHERE id = ${id}`,
+                    db.all(`SELECT * FROM users WHERE id = ?`, [id],
                         (err, rows) => {
                             if (err) reject(null)
                             resolve(rows[0])
@@ -88,9 +88,11 @@ let mutationType = new graphql.GraphQLObjectType({
                         `INSERT INTO users 
                             (name, email, password) 
                         VALUES 
-                            (${name}, ${email}, ${password});`,
+                            (?, ?, ?);`, [name, email, password],
                         (err) => {
-                            if (err) reject(null)
+                            if (err) {
+                                reject(err)
+                            }
                             db.get('SELECT last_insert_rowid() as id',
                             (err, row) => {
                                 resolve({
@@ -125,7 +127,7 @@ let mutationType = new graphql.GraphQLObjectType({
                 return new Promise((resolve, reject) => {
                     db.run(
                         `UPATE users 
-                        SET name = ${name}, email = ${email}, password = ${password}`, 
+                        SET name = ?, email = ?, password = ?`, [name, email, password], 
                         (err) => {
                             if (err) reject(err)
                             resolve(`User #${id} updated`)
@@ -134,7 +136,7 @@ let mutationType = new graphql.GraphQLObjectType({
             }
         },
         deleteUser: {
-            type: graphql.GraphQLNonString,
+            type: graphql.GraphQLString,
             args: {
                 id: {
                     type: new graphql.GraphQLNonNull(graphql.GraphQLID)
@@ -143,7 +145,7 @@ let mutationType = new graphql.GraphQLObjectType({
             resolve: (root, {id}) => {
                 return new Promise((resolve, reject) => {
                     db.run(`
-                        DELETE FROM users WHERE ID = ${id}`,
+                        DELETE FROM users WHERE ID = ?`, [id],
                         (err) => {
                             if (err) reject(err)
                             resolve(`User #${id} deleted`)
@@ -158,8 +160,9 @@ const schema = new graphql.GraphQLSchema({
     query: queryType,
     mutation: mutationType
 })
-app.use(cors)
-app.use("/graphql", expressGraphql({ schema: schema, graphiql: true}));
+
+app.use(cors())
+app.use("/graphql", expressGraphql({ schema: schema, graphiql: true}))
 app.listen(4000, () => {
-    console.log("GraphQL server running at http://localhost:4000.");
+    console.log("GraphQL server running at http://localhost:4000/graphql.")
 });
